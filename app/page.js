@@ -181,19 +181,25 @@ export default function Home() {
     processed = processed.replace(/^```(?:json|javascript|js)?\s*\n?/i, '');
     processed = processed.replace(/\n?```\s*$/, '');
     processed = processed.trim();
-    processed = repairJsonClosure(processed);
+
     const initialParse = safeParseJsonWithRepair(processed);
     if (initialParse.ok) {
       return JSON.stringify(initialParse.value, null, 2);
     }
 
-    processed = fixUnescapedQuotes(processed);
-    const repairedParse = safeParseJsonWithRepair(processed);
+    const closureRepaired = repairJsonClosure(processed);
+    const closureParse = safeParseJsonWithRepair(closureRepaired);
+    if (closureParse.ok) {
+      return JSON.stringify(closureParse.value, null, 2);
+    }
+
+    const quoteRepaired = fixUnescapedQuotes(closureRepaired);
+    const repairedParse = safeParseJsonWithRepair(quoteRepaired);
     if (repairedParse.ok) {
       return JSON.stringify(repairedParse.value, null, 2);
     }
 
-    return processed;
+    return quoteRepaired;
   };
 
   const tryParseAndApply = (code) => {
