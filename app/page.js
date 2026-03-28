@@ -364,7 +364,7 @@ export default function Home() {
         <div style={{ position: 'absolute', top: '140px', right: '-110px', width: '360px', height: '360px', background: 'radial-gradient(circle, rgba(125,211,200,0.22) 0%, rgba(125,211,200,0) 72%)' }} />
       </div>
 
-      <main className="workspace-shell" style={{ width: '100%', maxWidth: '1320px', margin: '0 auto', padding: '36px 28px 24px', display: 'flex', flexDirection: 'column', gap: '24px', flex: 1, position: 'relative' }}>
+      <main className="workspace-shell" style={{ width: 'min(1680px, calc(100vw - 32px))', margin: '0 auto', padding: '36px 20px 24px', display: 'flex', flexDirection: 'column', gap: '24px', flex: 1, position: 'relative' }}>
         <section className="hero-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '32px', alignItems: 'center' }}>
           <div className="hero-copy" style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             <div>
