@@ -17,8 +17,6 @@ import {
   SURFACE_BG,
   SURFACE_ALT,
 } from '@/lib/constants';
-import { optimizeExcalidrawCode } from '@/lib/optimizeArrows';
-import { repairJsonClosure, safeParseJsonWithRepair } from '@/lib/json-repair';
 
 const ExcalidrawCanvas = dynamic(() => import('@/components/ExcalidrawCanvas'), {
   ssr: false,
@@ -146,77 +144,6 @@ export default function Home() {
     };
   }, []);
 
-  const fixUnescapedQuotes = (jsonString) => {
-    let result = '';
-    let inString = false;
-    let escapeNext = false;
-    for (let i = 0; i < jsonString.length; i++) {
-      const char = jsonString[i];
-      if (escapeNext) { result += char; escapeNext = false; continue; }
-      if (char === '\\') { result += char; escapeNext = true; continue; }
-      if (char === '"') {
-        if (!inString) {
-          inString = true;
-          result += char;
-        } else {
-          const nextNonWS = jsonString.slice(i + 1).match(/^\s*(.)/);
-          const next = nextNonWS ? nextNonWS[1] : '';
-          if (next === ':' || next === ',' || next === '}' || next === ']' || next === '') {
-            inString = false;
-            result += char;
-          } else {
-            result += '\\"';
-          }
-        }
-      } else {
-        result += char;
-      }
-    }
-    return result;
-  };
-
-  const postProcessCode = (code) => {
-    if (!code || typeof code !== 'string') return code;
-    let processed = code.trim();
-    processed = processed.replace(/^```(?:json|javascript|js)?\s*\n?/i, '');
-    processed = processed.replace(/\n?```\s*$/, '');
-    processed = processed.trim();
-
-    const initialParse = safeParseJsonWithRepair(processed);
-    if (initialParse.ok) {
-      return JSON.stringify(initialParse.value, null, 2);
-    }
-
-    const closureRepaired = repairJsonClosure(processed);
-    const closureParse = safeParseJsonWithRepair(closureRepaired);
-    if (closureParse.ok) {
-      return JSON.stringify(closureParse.value, null, 2);
-    }
-
-    const quoteRepaired = fixUnescapedQuotes(closureRepaired);
-    const repairedParse = safeParseJsonWithRepair(quoteRepaired);
-    if (repairedParse.ok) {
-      return JSON.stringify(repairedParse.value, null, 2);
-    }
-
-    return quoteRepaired;
-  };
-
-  const tryParseAndApply = (code) => {
-    const arrayMatch = code.trim().match(/\[[\s\S]*\]/);
-    if (!arrayMatch) return;
-
-    const parsed = safeParseJsonWithRepair(arrayMatch[0]);
-    if (parsed.ok && Array.isArray(parsed.value)) {
-      setElements(parsed.value);
-      return;
-    }
-
-    console.error('Parse failed:', parsed.error);
-    console.error('Raw JSON snippet:', arrayMatch[0].slice(0, 300));
-    setError('Failed to parse diagram — the AI response contained invalid JSON. Please try again.');
-  };
-
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -273,34 +200,12 @@ export default function Home() {
         throw new Error(message);
       }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulatedCode = '';
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-        for (const line of lines) {
-          if (!line.trim() || line.trim() === 'data: [DONE]') continue;
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              if (data.content) accumulatedCode += data.content;
-              else if (data.error) throw new Error(data.error);
-            } catch (e) {
-              if (e.message && !e.message.includes('Unexpected')) console.error('SSE parse error:', e);
-            }
-          }
-        }
+      const data = await response.json();
+      if (!Array.isArray(data?.elements)) {
+        throw new Error('The server returned an invalid diagram payload');
       }
 
-      const processed = postProcessCode(accumulatedCode);
-      const optimized = optimizeExcalidrawCode(processed, chartType);
-      tryParseAndApply(optimized);
+      setElements(data.elements);
     } catch (e) {
       setError(e.message === 'Failed to fetch' ? 'Network error — check your connection' : e.message);
     } finally {
