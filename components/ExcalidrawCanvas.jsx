@@ -16,6 +16,8 @@ const getConvertFunction = async () => {
   return excalidrawModule.convertToExcalidrawElements;
 };
 
+const BINDABLE_TYPES = new Set(['rectangle', 'ellipse', 'diamond', 'text']);
+
 function asFiniteNumber(value, fallback) {
   return Number.isFinite(value) ? value : fallback;
 }
@@ -58,7 +60,7 @@ function sanitizeBindingEndpoint(endpoint) {
   const text = asOptionalString(endpoint.text);
 
   if (id) normalized.id = id;
-  if (type) normalized.type = type;
+  if (type && BINDABLE_TYPES.has(type)) normalized.type = type;
   if (type === 'text' && text) normalized.text = text;
 
   if (Number.isFinite(endpoint.x)) normalized.x = endpoint.x;
@@ -70,6 +72,66 @@ function sanitizeBindingEndpoint(endpoint) {
   if (normalized.type === 'text' && !normalized.text && !normalized.id) return undefined;
 
   return normalized;
+}
+
+function finalizeNormalizedElements(elements) {
+  const elementTypeById = new Map(
+    elements
+      .filter((element) => typeof element.id === 'string' && element.id.length > 0)
+      .map((element) => [element.id, element.type])
+  );
+
+  return elements
+    .map((element) => {
+      if (element.type === 'frame') {
+        const children = Array.isArray(element.children)
+          ? element.children.filter((childId) => {
+              const childType = elementTypeById.get(childId);
+              return childType && childType !== 'frame';
+            })
+          : [];
+
+        if (children.length === 0) {
+          return null;
+        }
+
+        return { ...element, children };
+      }
+
+      if (element.type === 'arrow') {
+        const normalized = { ...element };
+
+        for (const key of ['start', 'end']) {
+          const endpoint = normalized[key];
+          if (!endpoint) continue;
+
+          const referencedType = endpoint.id ? elementTypeById.get(endpoint.id) : endpoint.type;
+          if (!referencedType || !BINDABLE_TYPES.has(referencedType)) {
+            delete normalized[key];
+            continue;
+          }
+
+          if (referencedType === 'text' && !endpoint.id && !endpoint.text) {
+            delete normalized[key];
+          }
+        }
+
+        return normalized;
+      }
+
+      return element;
+    })
+    .filter(Boolean);
+}
+
+function getConversionRank(type) {
+  if (type === 'frame') return 2;
+  if (type === 'arrow' || type === 'line') return 1;
+  return 0;
+}
+
+function sortElementsForConversion(elements) {
+  return [...elements].sort((a, b) => getConversionRank(a.type) - getConversionRank(b.type));
 }
 
 function normalizeElementSkeleton(element) {
@@ -213,7 +275,8 @@ export default function ExcalidrawCanvas({ elements }) {
       const normalizedElements = elements
         .map(normalizeElementSkeleton)
         .filter(Boolean);
-      return convertElementsSafely(convertToExcalidrawElements, normalizedElements);
+      const finalizedElements = sortElementsForConversion(finalizeNormalizedElements(normalizedElements));
+      return convertElementsSafely(convertToExcalidrawElements, finalizedElements);
     } catch (error) {
       console.error('Failed to convert elements:', error);
       return [];
