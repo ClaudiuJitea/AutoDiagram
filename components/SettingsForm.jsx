@@ -14,8 +14,6 @@ import {
   TEXT_SECONDARY,
 } from '@/lib/constants';
 
-const ACCESS_PASSWORD = process.env.NEXT_PUBLIC_ACCESS_PASSWORD;
-
 const inputStyle = {
   width: '100%',
   padding: '14px 16px',
@@ -40,9 +38,7 @@ export default function SettingsForm() {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await fetch('/api/settings', {
-          headers: ACCESS_PASSWORD ? { 'x-access-password': ACCESS_PASSWORD } : {},
-        });
+        const response = await fetch('/api/settings');
 
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Failed to load settings');
@@ -71,7 +67,6 @@ export default function SettingsForm() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(ACCESS_PASSWORD ? { 'x-access-password': ACCESS_PASSWORD } : {}),
         },
         body: JSON.stringify(form),
       });
@@ -162,7 +157,6 @@ export default function SettingsForm() {
         >
           {saving ? 'Saving...' : loading ? 'Loading...' : 'Save settings'}
         </button>
-        <span style={{ fontSize: '12px', color: TEXT_MUTED }}>Protected by the same access password as generation.</span>
       </div>
     </form>
   );

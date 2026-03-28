@@ -44,14 +44,12 @@ SERVER_LLM_API_KEY=your_openrouter_key_here
 SERVER_LLM_BASE_URL=https://openrouter.ai/api/v1
 SERVER_LLM_TYPE=openrouter
 SERVER_LLM_MODEL=your_model_here
-ACCESS_PASSWORD=your_password_here
-NEXT_PUBLIC_ACCESS_PASSWORD=your_password_here
 ```
 
 Notes:
 
-- `ACCESS_PASSWORD` and `NEXT_PUBLIC_ACCESS_PASSWORD` must match.
 - `SERVER_LLM_TYPE` should remain `openrouter`.
+- This app is configured for local/private use. It does not ship an app-level access-password layer.
 
 ## Local Development
 
@@ -87,7 +85,7 @@ Notes:
 
 - `init` creates or updates `.env.local`
 - `deploy` rebuilds the image and replaces the running container
-- the app runs on `http://localhost:3000` by default
+- the Docker deploy binds to `127.0.0.1` and runs on `http://localhost:3000` by default
 
 ## Settings Page
 

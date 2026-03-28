@@ -3,24 +3,13 @@ import {
   getRuntimeConfig,
   persistRuntimeConfig,
   validateRuntimeConfig,
-  verifyAccessPassword,
 } from '@/lib/server/runtime-config';
 
-export async function GET(request) {
-  const auth = await verifyAccessPassword(request);
-  if (!auth.ok) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
-
+export async function GET() {
   return NextResponse.json({ config: getRuntimeConfig() });
 }
 
 export async function POST(request) {
-  const auth = await verifyAccessPassword(request);
-  if (!auth.ok) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
-
   try {
     const body = await request.json();
     const nextConfig = {

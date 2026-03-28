@@ -33,8 +33,6 @@ const ExcalidrawCanvas = dynamic(() => import('@/components/ExcalidrawCanvas'), 
   ),
 });
 
-const ACCESS_PASSWORD = process.env.NEXT_PUBLIC_ACCESS_PASSWORD;
-
 export default function Home() {
   const [activeTab, setActiveTab] = useState('text');
   const [chartType, setChartType] = useState('auto');
@@ -246,12 +244,9 @@ export default function Home() {
     setError(null);
 
     try {
-      const headers = { 'Content-Type': 'application/json' };
-      if (ACCESS_PASSWORD) headers['x-access-password'] = ACCESS_PASSWORD;
-
       const response = await fetch('/api/generate', {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userInput, chartType }),
       });
 

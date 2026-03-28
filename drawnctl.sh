@@ -165,10 +165,6 @@ SERVER_LLM_API_KEY=${SERVER_LLM_API_KEY}
 SERVER_LLM_BASE_URL=${SERVER_LLM_BASE_URL}
 SERVER_LLM_TYPE=${SERVER_LLM_TYPE}
 SERVER_LLM_MODEL=${SERVER_LLM_MODEL}
-
-# Access password — both variables must be set to the same value
-ACCESS_PASSWORD=${ACCESS_PASSWORD}
-NEXT_PUBLIC_ACCESS_PASSWORD=${NEXT_PUBLIC_ACCESS_PASSWORD}
 EOF
 
   success "Wrote environment file to $ENV_FILE"
@@ -192,21 +188,6 @@ init_env() {
   prompt_value "SERVER_LLM_BASE_URL" "OpenRouter base URL" "https://openrouter.ai/api/v1"
   SERVER_LLM_TYPE="openrouter"
   prompt_value "SERVER_LLM_MODEL" "OpenRouter model name (for example xiaomi/mimo-v2-pro)" ""
-  prompt_value "ACCESS_PASSWORD" "App access password" "" "true"
-
-  if [[ -z "${NEXT_PUBLIC_ACCESS_PASSWORD:-}" ]]; then
-    NEXT_PUBLIC_ACCESS_PASSWORD="$ACCESS_PASSWORD"
-  fi
-
-  printf "%b%s%b [%s]: " "${COLOR_BOLD}" "Public access password" "${COLOR_RESET}" "press enter to mirror app access password"
-  local public_password=""
-  read_secret
-  public_password="$REPLY"
-  if [[ -n "$public_password" ]]; then
-    NEXT_PUBLIC_ACCESS_PASSWORD="$public_password"
-  else
-    NEXT_PUBLIC_ACCESS_PASSWORD="$ACCESS_PASSWORD"
-  fi
 
   require_vars
   write_env_file
@@ -215,8 +196,6 @@ init_env() {
 require_vars() {
   local missing=()
   local required_vars=(
-    ACCESS_PASSWORD
-    NEXT_PUBLIC_ACCESS_PASSWORD
     SERVER_LLM_API_KEY
     SERVER_LLM_BASE_URL
     SERVER_LLM_TYPE
@@ -232,11 +211,6 @@ require_vars() {
   if (( ${#missing[@]} > 0 )); then
     error "Missing required values in $ENV_FILE:"
     printf "  - %s\n" "${missing[@]}" >&2
-    exit 1
-  fi
-
-  if [[ "$ACCESS_PASSWORD" != "$NEXT_PUBLIC_ACCESS_PASSWORD" ]]; then
-    error "ACCESS_PASSWORD and NEXT_PUBLIC_ACCESS_PASSWORD must match."
     exit 1
   fi
 }
@@ -279,7 +253,6 @@ deploy() {
   info "Building image $IMAGE_NAME for platform $PLATFORM"
   docker build \
     --platform "$PLATFORM" \
-    --build-arg "NEXT_PUBLIC_ACCESS_PASSWORD=$NEXT_PUBLIC_ACCESS_PASSWORD" \
     -t "$IMAGE_NAME" \
     "$SCRIPT_DIR"
   success "Image build completed"
@@ -290,9 +263,7 @@ deploy() {
   docker run -d \
     --name "$CONTAINER_NAME" \
     --restart unless-stopped \
-    -p "$PORT:3000" \
-    -e "ACCESS_PASSWORD=$ACCESS_PASSWORD" \
-    -e "NEXT_PUBLIC_ACCESS_PASSWORD=$NEXT_PUBLIC_ACCESS_PASSWORD" \
+    -p "127.0.0.1:$PORT:3000" \
     -e "SERVER_LLM_API_KEY=$SERVER_LLM_API_KEY" \
     -e "SERVER_LLM_BASE_URL=$SERVER_LLM_BASE_URL" \
     -e "SERVER_LLM_TYPE=$SERVER_LLM_TYPE" \

@@ -12,10 +12,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# NEXT_PUBLIC_* vars are inlined at build time — must be passed as --build-arg
-ARG NEXT_PUBLIC_ACCESS_PASSWORD
-ENV NEXT_PUBLIC_ACCESS_PASSWORD=$NEXT_PUBLIC_ACCESS_PASSWORD
-
 RUN pnpm run build
 
 # ── Stage 3: runner ──────────────────────────────────────────────────────────
@@ -33,7 +29,6 @@ ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
 # Runtime env vars — inject via -e or --env-file at docker run:
-# ACCESS_PASSWORD, SERVER_LLM_API_KEY, SERVER_LLM_BASE_URL,
-# SERVER_LLM_TYPE, SERVER_LLM_MODEL
+# SERVER_LLM_API_KEY, SERVER_LLM_BASE_URL, SERVER_LLM_TYPE, SERVER_LLM_MODEL
 
 CMD ["node", "server.js"]
