@@ -18,7 +18,7 @@ import {
   SURFACE_ALT,
 } from '@/lib/constants';
 import { optimizeExcalidrawCode } from '@/lib/optimizeArrows';
-import { repairJsonClosure } from '@/lib/json-repair';
+import { repairJsonClosure, safeParseJsonWithRepair } from '@/lib/json-repair';
 
 const ExcalidrawCanvas = dynamic(() => import('@/components/ExcalidrawCanvas'), {
   ssr: false,
@@ -182,25 +182,31 @@ export default function Home() {
     processed = processed.replace(/\n?```\s*$/, '');
     processed = processed.trim();
     processed = repairJsonClosure(processed);
-    try {
-      JSON.parse(processed);
-      return processed;
-    } catch {
-      processed = fixUnescapedQuotes(processed);
-      processed = repairJsonClosure(processed);
-      return processed;
+    const initialParse = safeParseJsonWithRepair(processed);
+    if (initialParse.ok) {
+      return JSON.stringify(initialParse.value, null, 2);
     }
+
+    processed = fixUnescapedQuotes(processed);
+    const repairedParse = safeParseJsonWithRepair(processed);
+    if (repairedParse.ok) {
+      return JSON.stringify(repairedParse.value, null, 2);
+    }
+
+    return processed;
   };
 
   const tryParseAndApply = (code) => {
-    try {
-      const arrayMatch = code.trim().match(/\[[\s\S]*\]/);
-      if (!arrayMatch) return;
-      const parsed = JSON.parse(arrayMatch[0]);
-      if (Array.isArray(parsed)) setElements(parsed);
-    } catch (e) {
-      console.error('Parse failed:', e);
+    const arrayMatch = code.trim().match(/\[[\s\S]*\]/);
+    if (!arrayMatch) return;
+
+    const parsed = safeParseJsonWithRepair(arrayMatch[0]);
+    if (parsed.ok && Array.isArray(parsed.value)) {
+      setElements(parsed.value);
+      return;
     }
+
+    console.error('Parse failed:', parsed.error);
   };
 
   const handleFileUpload = (e) => {
