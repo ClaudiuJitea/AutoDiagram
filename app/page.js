@@ -299,7 +299,7 @@ export default function Home() {
       }
 
       const processed = postProcessCode(accumulatedCode);
-      const optimized = optimizeExcalidrawCode(processed);
+      const optimized = optimizeExcalidrawCode(processed, chartType);
       tryParseAndApply(optimized);
     } catch (e) {
       setError(e.message === 'Failed to fetch' ? 'Network error — check your connection' : e.message);
