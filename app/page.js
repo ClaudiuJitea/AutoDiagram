@@ -207,6 +207,8 @@ export default function Home() {
     }
 
     console.error('Parse failed:', parsed.error);
+    console.error('Raw JSON snippet:', arrayMatch[0].slice(0, 300));
+    setError('Failed to parse diagram — the AI response contained invalid JSON. Please try again.');
   };
 
   const handleFileUpload = (e) => {
