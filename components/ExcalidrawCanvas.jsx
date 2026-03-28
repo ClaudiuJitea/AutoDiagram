@@ -16,6 +16,40 @@ const getConvertFunction = async () => {
   return excalidrawModule.convertToExcalidrawElements;
 };
 
+function normalizeElementSkeleton(element) {
+  if (!element || typeof element !== 'object' || typeof element.type !== 'string') {
+    return null;
+  }
+
+  const normalized = { ...element };
+
+  if (!Array.isArray(normalized.groupIds)) {
+    normalized.groupIds = [];
+  }
+
+  if (normalized.type === 'frame' && !Array.isArray(normalized.children)) {
+    normalized.children = [];
+  }
+
+  if (normalized.type === 'arrow' || normalized.type === 'line') {
+    const width = Number.isFinite(normalized.width) ? normalized.width : 100;
+    const height = Number.isFinite(normalized.height) ? normalized.height : 0;
+    normalized.width = width;
+    normalized.height = height;
+    normalized.points = Array.isArray(normalized.points) && normalized.points.length > 0
+      ? normalized.points
+      : [[0, 0], [width, height]];
+  }
+
+  if (normalized.type === 'freedraw') {
+    normalized.points = Array.isArray(normalized.points) && normalized.points.length > 0
+      ? normalized.points
+      : [[0, 0], [1, 1]];
+  }
+
+  return normalized;
+}
+
 export default function ExcalidrawCanvas({ elements }) {
   const [convertToExcalidrawElements, setConvertFunction] = useState(null);
   const [excalidrawAPI, setExcalidrawAPI] = useState(null);
@@ -34,7 +68,10 @@ export default function ExcalidrawCanvas({ elements }) {
     }
 
     try {
-      return convertToExcalidrawElements(elements);
+      const normalizedElements = elements
+        .map(normalizeElementSkeleton)
+        .filter(Boolean);
+      return convertToExcalidrawElements(normalizedElements);
     } catch (error) {
       console.error('Failed to convert elements:', error);
       return [];
@@ -79,4 +116,3 @@ export default function ExcalidrawCanvas({ elements }) {
     </div>
   );
 }
-

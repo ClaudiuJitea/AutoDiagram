@@ -9,6 +9,7 @@ RUN pnpm install --frozen-lockfile
 FROM node:22.14-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@10.32.1 --activate
 WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -18,6 +19,7 @@ RUN pnpm run build
 FROM node:22.14-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Copy standalone output and static assets
 COPY --from=builder /app/.next/standalone ./

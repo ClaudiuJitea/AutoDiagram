@@ -40,6 +40,7 @@ It uses an OpenRouter-compatible chat model to generate diagram JSON, then rende
 Create `.env.local` from `.env.example` and set:
 
 ```env
+NEXT_TELEMETRY_DISABLED=1
 SERVER_LLM_API_KEY=your_openrouter_key_here
 SERVER_LLM_BASE_URL=https://openrouter.ai/api/v1
 SERVER_LLM_TYPE=openrouter
@@ -50,6 +51,7 @@ Notes:
 
 - `SERVER_LLM_TYPE` should remain `openrouter`.
 - This app is configured for local/private use. It does not ship an app-level access-password layer.
+- `NEXT_TELEMETRY_DISABLED=1` keeps Next.js telemetry off for local/private use.
 
 ## Local Development
 
