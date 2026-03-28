@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4fbf9;
+  --foreground: #173038;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-rubik), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+body::selection {
+  background: rgba(22, 179, 167, 0.22);
+}
+
+/* Hide scrollbar utility class */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+a {
+  transition: color 160ms ease, opacity 160ms ease;
+}
+
+button,
+input,
+textarea,
+select {
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
