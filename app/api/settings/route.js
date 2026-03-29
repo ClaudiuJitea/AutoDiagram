@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
 import {
   getRuntimeConfig,
+  getRuntimeConfigStatus,
   persistRuntimeConfig,
   validateRuntimeConfig,
 } from '@/lib/server/runtime-config';
 
 export async function GET() {
-  return NextResponse.json({ config: getRuntimeConfig() });
+  return NextResponse.json({
+    config: getRuntimeConfig(),
+    ...getRuntimeConfigStatus(),
+  });
 }
 
 export async function POST(request) {

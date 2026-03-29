@@ -88,6 +88,8 @@ export default function SettingsForm() {
         <label style={{ display: 'grid', gap: '8px' }}>
           <span style={{ fontSize: '13px', fontWeight: 600, color: TEXT_PRIMARY }}>OpenRouter API key</span>
           <input
+            id="openrouter-api-key"
+            name="api_key"
             type="password"
             value={form.apiKey}
             onChange={(event) => updateField('apiKey', event.target.value)}
@@ -100,6 +102,8 @@ export default function SettingsForm() {
         <label style={{ display: 'grid', gap: '8px' }}>
           <span style={{ fontSize: '13px', fontWeight: 600, color: TEXT_PRIMARY }}>Base URL</span>
           <input
+            id="openrouter-base-url"
+            name="base_url"
             type="text"
             value={form.baseUrl}
             onChange={(event) => updateField('baseUrl', event.target.value)}
@@ -111,6 +115,8 @@ export default function SettingsForm() {
         <label style={{ display: 'grid', gap: '8px' }}>
           <span style={{ fontSize: '13px', fontWeight: 600, color: TEXT_PRIMARY }}>Model</span>
           <input
+            id="openrouter-model"
+            name="model"
             type="text"
             value={form.model}
             onChange={(event) => updateField('model', event.target.value)}

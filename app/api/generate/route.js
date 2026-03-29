@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { generateDiagramElements } from '@/lib/diagram-generator';
+import { getRuntimeConfigStatus } from '@/lib/server/runtime-config';
 
 /**
  * POST /api/generate
@@ -21,14 +22,19 @@ export async function POST(request) {
       apiKey: process.env.SERVER_LLM_API_KEY,
       model: process.env.SERVER_LLM_MODEL,
     };
-    if (!finalConfig.type || !finalConfig.apiKey) {
+    const runtimeStatus = getRuntimeConfigStatus();
+    if (!finalConfig.type || !runtimeStatus.configured) {
       return NextResponse.json(
-        { error: 'Server-side LLM configuration is incomplete' },
-        { status: 500 }
+        {
+          error: 'LLM configuration is incomplete. Add an API key and model in Settings before generating.',
+          code: 'llm_not_configured',
+          missingFields: runtimeStatus.missingFields,
+        },
+        { status: 503 }
       );
     }
 
-    const result = await generateDiagramElements(finalConfig, userInput, chartType);
+    const result = await generateDiagramElements(finalConfig, userInput, chartType || 'flowchart');
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error generating code:', error);

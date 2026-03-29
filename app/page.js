@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import {
   CHART_TYPES,
+  CHART_TYPE_DETAILS,
   BRAND_COLOR,
   BRAND_COLOR_DARK,
   BRAND_COLOR_SOFT,
@@ -33,7 +34,7 @@ const ExcalidrawCanvas = dynamic(() => import('@/components/ExcalidrawCanvas'), 
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('text');
-  const [chartType, setChartType] = useState('auto');
+  const [chartType, setChartType] = useState('flowchart');
   const [textInput, setTextInput] = useState('');
   const [fileContent, setFileContent] = useState('');
   const [fileName, setFileName] = useState('');
@@ -42,6 +43,12 @@ export default function Home() {
   const [imageName, setImageName] = useState('');
   const [imageCaption, setImageCaption] = useState('');
   const [chartMenuOpen, setChartMenuOpen] = useState(false);
+  const [llmStatus, setLlmStatus] = useState({
+    checked: false,
+    configured: true,
+    missingFields: [],
+  });
+  const [configModalOpen, setConfigModalOpen] = useState(false);
 
   const [panelWidth, setPanelWidth] = useState(550);
 
@@ -144,6 +151,41 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadSettingsStatus = async () => {
+      try {
+        const response = await fetch('/api/settings');
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Failed to load settings');
+
+        if (cancelled) return;
+
+        const nextStatus = {
+          checked: true,
+          configured: Boolean(data.configured),
+          missingFields: Array.isArray(data.missingFields) ? data.missingFields : [],
+        };
+
+        setLlmStatus(nextStatus);
+        if (!nextStatus.configured) {
+          setConfigModalOpen(true);
+        }
+      } catch {
+        if (!cancelled) {
+          setLlmStatus((current) => ({ ...current, checked: true }));
+        }
+      }
+    };
+
+    loadSettingsStatus();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -180,6 +222,10 @@ export default function Home() {
     else if (activeTab === 'image') userInput = { text: imageCaption || 'Generate a diagram from this image', image: imageData };
 
     if (!userInput) return;
+    if (llmStatus.checked && !llmStatus.configured) {
+      setConfigModalOpen(true);
+      return;
+    }
 
     setIsGenerating(true);
     setError(null);
@@ -195,7 +241,16 @@ export default function Home() {
         let message = 'Failed to generate diagram';
         try {
           const data = await response.json();
-          if (data.error) message = data.error;
+          if (data?.error) message = data.error;
+          if (data?.code === 'llm_not_configured') {
+            setLlmStatus({
+              checked: true,
+              configured: false,
+              missingFields: Array.isArray(data.missingFields) ? data.missingFields : [],
+            });
+            setConfigModalOpen(true);
+            return;
+          }
         } catch {}
         throw new Error(message);
       }
@@ -212,6 +267,16 @@ export default function Home() {
       setIsGenerating(false);
     }
   };
+
+  const chartTypeDetail = CHART_TYPE_DETAILS[chartType];
+  const missingFieldLabels = {
+    apiKey: 'API key',
+    baseUrl: 'base URL',
+    model: 'model',
+  };
+  const missingFieldText = llmStatus.missingFields.length > 0
+    ? llmStatus.missingFields.map((field) => missingFieldLabels[field] || field).join(', ')
+    : 'API key and model';
 
   const textareaStyle = {
     width: '100%',
@@ -302,7 +367,7 @@ export default function Home() {
 
               {[
                 ['1', 'Describe the system, process, or image'],
-                ['2', 'Select a chart style or let AutoDiagram decide'],
+                ['2', 'Select the chart style that matches the diagram'],
                 ['3', 'Iterate directly in Excalidraw after generation'],
               ].map(([step, label]) => (
                 <div key={step} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 16px', borderRadius: '20px', background: SURFACE_BG, border: `1px solid ${BORDER_COLOR}` }}>
@@ -419,7 +484,7 @@ export default function Home() {
                 <div className="chart-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ fontSize: '12px', color: TEXT_SECONDARY, whiteSpace: 'nowrap' }}>Chart type:</span>
-                    <div ref={chartMenuRef} style={{ position: 'relative', width: '180px' }}>
+                    <div ref={chartMenuRef} style={{ position: 'relative', width: '280px', maxWidth: '100%' }}>
                       <button
                         type="button"
                         onClick={() => setChartMenuOpen((open) => !open)}
@@ -463,6 +528,7 @@ export default function Home() {
                         >
                           {Object.entries(CHART_TYPES).map(([key, label]) => {
                             const selected = chartType === key;
+                            const detail = CHART_TYPE_DETAILS[key];
                             return (
                               <button
                                 key={key}
@@ -474,7 +540,7 @@ export default function Home() {
                                 style={{
                                   width: '100%',
                                   textAlign: 'left',
-                                  padding: '10px 12px',
+                                  padding: '12px',
                                   borderRadius: '14px',
                                   border: 'none',
                                   background: selected ? BRAND_COLOR_SOFT : 'transparent',
@@ -484,7 +550,14 @@ export default function Home() {
                                   cursor: 'pointer',
                                 }}
                               >
-                                {label}
+                                <div style={{ display: 'grid', gap: '4px' }}>
+                                  <span>{label}</span>
+                                  {detail && (
+                                    <span style={{ fontSize: '12px', fontWeight: 400, color: selected ? BRAND_COLOR_DARK : TEXT_SECONDARY, lineHeight: 1.45 }}>
+                                      {detail.meaning}
+                                    </span>
+                                  )}
+                                </div>
                               </button>
                             );
                           })}
@@ -514,6 +587,16 @@ export default function Home() {
                   </button>
                 </div>
 
+                {chartTypeDetail && (
+                  <div style={{ padding: '14px 16px', borderRadius: '18px', border: `1px solid ${BORDER_COLOR}`, background: SURFACE_ALT, display: 'grid', gap: '6px' }}>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: TEXT_PRIMARY }}>{CHART_TYPES[chartType]}</div>
+                    <div style={{ fontSize: '13px', lineHeight: 1.6, color: TEXT_SECONDARY }}>{chartTypeDetail.meaning}</div>
+                    <div style={{ fontSize: '12px', lineHeight: 1.6, color: TEXT_MUTED }}>
+                      Best for: {chartTypeDetail.bestFor}
+                    </div>
+                  </div>
+                )}
+
               </div>
             </div>
           </div>
@@ -532,6 +615,61 @@ export default function Home() {
         </div>
         </section>
       </main>
+
+      {configModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(10, 24, 30, 0.26)', backdropFilter: 'blur(6px)', display: 'grid', placeItems: 'center', padding: '24px', zIndex: 100 }}>
+          <div style={{ width: 'min(560px, 100%)', background: 'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(244,251,249,0.96) 100%)', border: `1px solid ${BORDER_COLOR}`, borderRadius: '30px', padding: '28px', boxShadow: '0 30px 80px rgba(17, 53, 60, 0.18)', display: 'grid', gap: '16px' }}>
+            <div>
+              <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.08em', color: TEXT_MUTED, marginBottom: '10px' }}>Runtime configuration required</div>
+              <div style={{ fontSize: '32px', lineHeight: 1.05, letterSpacing: '-0.04em', fontWeight: 500, color: TEXT_PRIMARY }}>Add an API key and model before generating diagrams.</div>
+            </div>
+            <div style={{ fontSize: '14px', lineHeight: 1.7, color: TEXT_SECONDARY }}>
+              This app does not have a working LLM configured yet. Open Settings and fill in the missing runtime fields so generation requests can be sent successfully.
+            </div>
+            <div style={{ padding: '14px 16px', borderRadius: '20px', border: `1px solid ${BORDER_COLOR}`, background: SURFACE_BG, fontSize: '13px', lineHeight: 1.6, color: TEXT_SECONDARY }}>
+              Missing fields: {missingFieldText}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <Link
+                href="/settings"
+                onClick={() => setConfigModalOpen(false)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '12px 18px',
+                  borderRadius: '999px',
+                  textDecoration: 'none',
+                  border: 'none',
+                  background: `linear-gradient(135deg, ${BRAND_COLOR} 0%, ${BRAND_COLOR_DARK} 100%)`,
+                  color: '#fff',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  boxShadow: `0 18px 38px ${BRAND_GLOW}`,
+                }}
+              >
+                Open settings
+              </Link>
+              <button
+                type="button"
+                onClick={() => setConfigModalOpen(false)}
+                style={{
+                  padding: '12px 18px',
+                  borderRadius: '999px',
+                  border: `1px solid ${BORDER_COLOR}`,
+                  background: SURFACE_BG,
+                  color: TEXT_PRIMARY,
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
