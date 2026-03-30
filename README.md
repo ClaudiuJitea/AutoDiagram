@@ -8,6 +8,8 @@ It uses an OpenRouter-compatible chat model to generate diagram JSON, then rende
 
 ### Main Workspace
 
+Latest main workspace UI with the slimmer hero and diagram canvas directly below:
+
 ![AutoDiagram main workspace](images/main.png)
 
 ### Settings
