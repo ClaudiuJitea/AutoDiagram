@@ -95,6 +95,7 @@ load_env_file() {
 
 read_secret() {
   local input=""
+  local char=""
 
   if [[ ! -t 0 ]]; then
     IFS= read -r input || true
@@ -102,7 +103,23 @@ read_secret() {
     return
   fi
 
-  IFS= read -r -s input || true
+  # Show masked progress so pasted secrets have visible feedback without echoing the value.
+  while IFS= read -r -s -n1 char; do
+    if [[ -z "$char" || "$char" == $'\n' || "$char" == $'\r' ]]; then
+      break
+    fi
+
+    if [[ "$char" == $'\177' || "$char" == $'\b' ]]; then
+      if [[ -n "$input" ]]; then
+        input="${input%?}"
+        printf '\b \b'
+      fi
+      continue
+    fi
+
+    input+="$char"
+    printf '*'
+  done
   printf '\n'
 
   if [[ -n "$input" ]]; then
@@ -187,7 +204,7 @@ init_env() {
   prompt_value "SERVER_LLM_API_KEY" "OpenRouter API key" "" "true"
   prompt_value "SERVER_LLM_BASE_URL" "OpenRouter base URL" "https://openrouter.ai/api/v1"
   SERVER_LLM_TYPE="openrouter"
-  prompt_value "SERVER_LLM_MODEL" "OpenRouter model name (for example xiaomi/mimo-v2-pro)" ""
+  prompt_value "SERVER_LLM_MODEL" "OpenRouter model name (for example google/gemini-3.1-flash-lite-preview)" ""
 
   require_vars
   write_env_file
