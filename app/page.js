@@ -340,43 +340,20 @@ export default function Home() {
         <div style={{ position: 'absolute', top: '140px', right: '-110px', width: '360px', height: '360px', background: 'radial-gradient(circle, rgba(125,211,200,0.22) 0%, rgba(125,211,200,0) 72%)' }} />
       </div>
 
-      <main className="workspace-shell" style={{ width: 'min(1680px, calc(100vw - 32px))', margin: '0 auto', padding: '36px 20px 24px', display: 'flex', flexDirection: 'column', gap: '24px', flex: 1, position: 'relative' }}>
-        <section className="hero-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '32px', alignItems: 'center' }}>
-          <div className="hero-copy" style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <main className="workspace-shell" style={{ width: 'min(1680px, calc(100vw - 32px))', margin: '0 auto', padding: '24px 20px 24px', display: 'flex', flexDirection: 'column', gap: '18px', flex: 1, position: 'relative' }}>
+        <section className="hero-grid" style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-start' }}>
+          <div className="hero-copy" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div>
-              <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.08em', color: TEXT_MUTED, marginBottom: '14px' }}>AutoDiagram</div>
-              <h1 className="hero-title" style={{ margin: '0 0 14px', fontSize: '64px', lineHeight: 0.96, letterSpacing: '-2.8px', fontWeight: 500, maxWidth: '720px' }}>
+              <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.08em', color: TEXT_MUTED, marginBottom: '10px' }}>AutoDiagram</div>
+              <h1 className="hero-title" style={{ margin: '0 0 10px', fontSize: '56px', lineHeight: 0.94, letterSpacing: '-2.2px', fontWeight: 500, maxWidth: '900px' }}>
                 Turn rough ideas into
                 <span style={{ display: 'block', color: BRAND_COLOR_DARK }}> polished diagrams you can edit.</span>
               </h1>
-              <p className="hero-lead" style={{ margin: 0, maxWidth: '620px', fontSize: '17px', lineHeight: 1.7, color: TEXT_SECONDARY }}>
+              <p className="hero-lead" style={{ margin: 0, maxWidth: '760px', fontSize: '16px', lineHeight: 1.65, color: TEXT_SECONDARY }}>
                 AutoDiagram converts prompts, codebases, and screenshots into structured Excalidraw scenes with the calm, clinical clarity of a modern scheduling product.
               </p>
             </div>
           </div>
-
-          <aside className="studio-card" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(244,251,249,0.92) 100%)', border: `1px solid ${BORDER_COLOR}`, borderRadius: '34px', padding: '28px', boxShadow: '0 24px 70px rgba(17, 53, 60, 0.10)', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', top: '-40px', right: '-10px', width: '140px', height: '140px', borderRadius: '999px', background: 'radial-gradient(circle, rgba(22,179,167,0.24) 0%, rgba(22,179,167,0) 72%)' }} />
-            <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-              <div>
-                <div>
-                  <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.08em', color: TEXT_MUTED, marginBottom: '8px' }}>Workflow</div>
-                  <div style={{ fontSize: '28px', lineHeight: 1.15, fontWeight: 500, color: TEXT_PRIMARY }}>Prompt in. Diagram out.</div>
-                </div>
-              </div>
-
-              {[
-                ['1', 'Describe the system, process, or image'],
-                ['2', 'Select the chart style that matches the diagram'],
-                ['3', 'Iterate directly in Excalidraw after generation'],
-              ].map(([step, label]) => (
-                <div key={step} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 16px', borderRadius: '20px', background: SURFACE_BG, border: `1px solid ${BORDER_COLOR}` }}>
-                  <div style={{ width: '34px', height: '34px', borderRadius: '999px', background: BRAND_COLOR, color: '#fff', display: 'grid', placeItems: 'center', fontSize: '13px', fontWeight: 600, boxShadow: `0 10px 24px ${BRAND_GLOW}` }}>{step}</div>
-                  <div style={{ fontSize: '14px', lineHeight: 1.5, color: TEXT_SECONDARY }}>{label}</div>
-                </div>
-              ))}
-            </div>
-          </aside>
         </section>
 
         <section className="workspace-card" style={{ display: 'flex', flexDirection: 'column', gap: '18px', background: 'linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(247,252,251,0.92) 100%)', border: `1px solid ${BORDER_COLOR}`, borderRadius: '36px', padding: '22px', boxShadow: '0 30px 80px rgba(17, 53, 60, 0.08)', backdropFilter: 'blur(16px)' }}>
