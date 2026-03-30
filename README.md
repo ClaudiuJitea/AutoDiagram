@@ -97,7 +97,7 @@ Open `http://localhost:3000/settings` to update:
 - OpenRouter base URL
 - model name
 
-The settings page writes the values into the running app's `.env.local` and updates the current runtime for future generations.
+The settings page writes the values into `.env.local` and updates the current runtime immediately. When deployed with `drawnctl.sh`, that same file is mounted into the container and reused on restart or redeploy.
 
 ## License
 

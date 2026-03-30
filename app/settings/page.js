@@ -28,7 +28,7 @@ export default function SettingsPage() {
             <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.08em', color: TEXT_MUTED, marginBottom: '8px' }}>AutoDiagram</div>
             <div style={{ fontSize: '36px', lineHeight: 1.08, letterSpacing: '-0.04em', fontWeight: 500 }}>Runtime settings</div>
             <p style={{ margin: '10px 0 0', fontSize: '15px', lineHeight: 1.7, color: TEXT_SECONDARY }}>
-              Update the OpenRouter credentials and model used by the running app without touching the terminal.
+              Update the OpenRouter credentials and model used by the running app. The saved values persist in `.env.local` and are reused after container restarts.
             </p>
           </div>
         </div>

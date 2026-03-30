@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { generateDiagramElements } from '@/lib/diagram-generator';
-import { getRuntimeConfigStatus } from '@/lib/server/runtime-config';
+import { getRuntimeConfigStatus, getServerRuntimeConfig } from '@/lib/server/runtime-config';
 
 /**
  * POST /api/generate
@@ -16,12 +16,7 @@ export async function POST(request) {
       );
     }
 
-    const finalConfig = {
-      type: process.env.SERVER_LLM_TYPE,
-      baseUrl: process.env.SERVER_LLM_BASE_URL,
-      apiKey: process.env.SERVER_LLM_API_KEY,
-      model: process.env.SERVER_LLM_MODEL,
-    };
+    const finalConfig = getServerRuntimeConfig();
     const runtimeStatus = getRuntimeConfigStatus();
     if (!finalConfig.type || !runtimeStatus.configured) {
       return NextResponse.json(

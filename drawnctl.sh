@@ -281,10 +281,8 @@ deploy() {
     --name "$CONTAINER_NAME" \
     --restart unless-stopped \
     -p "127.0.0.1:$PORT:3000" \
-    -e "SERVER_LLM_API_KEY=$SERVER_LLM_API_KEY" \
-    -e "SERVER_LLM_BASE_URL=$SERVER_LLM_BASE_URL" \
-    -e "SERVER_LLM_TYPE=$SERVER_LLM_TYPE" \
-    -e "SERVER_LLM_MODEL=$SERVER_LLM_MODEL" \
+    --env-file "$ENV_FILE" \
+    -v "$ENV_FILE:/app/.env.local" \
     "$IMAGE_NAME" >/dev/null
   success "AutoDiagram is deployed"
   printf "  URL: %bhttp://localhost:%s%b\n" "${COLOR_BOLD}" "$PORT" "${COLOR_RESET}"

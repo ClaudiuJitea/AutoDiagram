@@ -120,14 +120,14 @@ export default function SettingsForm() {
             type="text"
             value={form.model}
             onChange={(event) => updateField('model', event.target.value)}
-            placeholder="xiaomi/mimo-v2-pro"
+            placeholder="google/gemini-3.1-flash-lite-preview"
             style={inputStyle}
           />
         </label>
       </div>
 
       <div style={{ padding: '14px 16px', borderRadius: '20px', border: `1px solid ${BORDER_COLOR}`, background: PAGE_BG, color: TEXT_SECONDARY, fontSize: '13px', lineHeight: 1.7 }}>
-        Changes are written to the container&apos;s `.env.local` and applied to the current runtime immediately for future generations.
+        Changes are written to the mounted `.env.local` file and applied to the current runtime immediately. Restarts and redeploys will reuse the same saved values.
       </div>
 
       {status.message && (
